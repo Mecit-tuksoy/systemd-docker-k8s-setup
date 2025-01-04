@@ -188,6 +188,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: my-app-hpa
+  namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -198,8 +199,10 @@ spec:
   metrics:
   - type: Resource
     resource:
-      name: cpu
-      targetAverageUtilization: 50
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
 ````
 
 deployment.yaml:
@@ -264,8 +267,6 @@ kind: Ingress
 metadata:
   name: my-app-ingress
   namespace: default
-  # annotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
   - host: mecit.com
@@ -528,4 +529,82 @@ Rollback was a success! Happy Helming!
 mecit@Proje:[helm-chart]>(main) curl mecit.com
 Hello from version 2!mecit@Proje:[helm-chart]>(main) 
 mecit@Proje:[helm-chart]>(main) 
+````
+
+##  Yoğun Trafik Testi ve HPA’nın Tetiklenmesi
+
+Kubernetes Cluster'da HPA'nın çalışması için metrics-server bileşenini kurmanız gerekir. Kubernetes, podların CPU ve bellek kullanımını bu bileşen üzerinden toplar.
+````sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+````
+
+while true döngüsü ile yük testi yapmak için;
+
+````sh
+while true; do curl -s http://mecit.com > /dev/null; done
+````
+
+kaynakları kontrol ettiğimizde;
+
+````sh
+mecit@Proje:[Konzek]> kubectl get pod
+NAME                      READY   STATUS    RESTARTS   AGE
+my-app-65cbc49475-hx99q   1/1     Running   0          3m21s
+my-app-65cbc49475-xp2rs   1/1     Running   0          3m20s
+mecit@Proje:[Konzek]> kubectl get hpa
+NAME         REFERENCE           TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+my-app-hpa   Deployment/my-app   45%/50%   2         10        2          6m4s
+mecit@Proje:[Konzek]> kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+my-app-65cbc49475-hx99q   1/1     Running   0          4m38s
+my-app-65cbc49475-mhqmd   1/1     Running   0          17s
+my-app-65cbc49475-r5v5p   1/1     Running   0          17s
+my-app-65cbc49475-xp2rs   1/1     Running   0          4m37s
+mecit@Proje:[Konzek]> kubectl get hpa
+NAME         REFERENCE           TARGETS    MINPODS   MAXPODS   REPLICAS   AGE
+my-app-hpa   Deployment/my-app   145%/50%   2         10        4          7m9s
+mecit@Proje:[Konzek]> kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+my-app-65cbc49475-4mh9j   1/1     Running   0          16s
+my-app-65cbc49475-5f5sx   1/1     Running   0          16s
+my-app-65cbc49475-hx99q   1/1     Running   0          6m50s
+my-app-65cbc49475-lvhm8   1/1     Running   0          17s
+my-app-65cbc49475-mhqmd   1/1     Running   0          2m29s
+my-app-65cbc49475-nvkkr   1/1     Running   0          16s
+my-app-65cbc49475-r5v5p   1/1     Running   0          2m29s
+my-app-65cbc49475-t6nzh   1/1     Running   0          2m11s
+my-app-65cbc49475-xp2rs   1/1     Running   0          6m49s
+my-app-65cbc49475-zh7g7   1/1     Running   0          2m11s
+````
+
+Döngüyü sonlandırdıktan sonra kaynakların durumu:
+
+````sh
+mecit@Proje:[Konzek]> kubectl get hpa
+NAME         REFERENCE           TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+my-app-hpa   Deployment/my-app   78%/50%   2         10        10         9m25s
+mecit@Proje:[Konzek]> kubectl get hpa
+NAME         REFERENCE           TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+my-app-hpa   Deployment/my-app   22%/50%   2         10        10         11m
+mecit@Proje:[Konzek]> kubectl get hpa
+NAME         REFERENCE           TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+my-app-hpa   Deployment/my-app   2%/50%    2         10        10         12m
+mecit@Proje:[Konzek]> kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+my-app-65cbc49475-mhqmd   1/1     Running   0          10m
+my-app-65cbc49475-r5v5p   1/1     Running   0          10m
+my-app-65cbc49475-t6nzh   1/1     Running   0          10m
+my-app-65cbc49475-xp2rs   1/1     Running   0          14m
+my-app-65cbc49475-zh7g7   1/1     Running   0          10m
+mecit@Proje:[Konzek]> kubectl get pods
+NAME                      READY   STATUS        RESTARTS   AGE
+my-app-65cbc49475-mhqmd   1/1     Running       0          11m
+my-app-65cbc49475-r5v5p   1/1     Running       0          11m
+my-app-65cbc49475-t6nzh   0/1     Terminating   0          11m
+my-app-65cbc49475-xp2rs   0/1     Terminating   0          15m
+my-app-65cbc49475-zh7g7   1/1     Terminating   0          11m
+mecit@Proje:[Konzek]> kubectl get pods
+NAME                      READY   STATUS    RESTARTS   AGE
+my-app-65cbc49475-mhqmd   1/1     Running   0          11m
+my-app-65cbc49475-r5v5p   1/1     Running   0          11m
 ````
