@@ -1,19 +1,21 @@
 # Task 1
 
+The purpose of this task is to run a Python Flask application that prints "Hello everyone!" as a systemd service on Ubuntu. The service should remain active, ensure logs are recorded correctly, and automatically restart in case of potential errors.
+
 ````sh
-python3 --version           #python3 yüklümü? Yüklü değilse yüklemek için:
+python3 --version           #Check if python3 is installed. If not, install it using the following command:
 sudo apt update && sudo apt install python3
-which python3               #python3'ün yolunu öğreniyoruz.
-pwd                         #uygulammnın olduğu konumu service dosyasında kullanacağımız için alıyoruz.
+which python3               #Find the path of python3 to use it in the service file.
+pwd                         #Get the current directory path where the application is located, to use it in the service file.
 ````
 ````sh
-pip3 list | grep flask            # gerekli olan flask freamework yüklümü kontrol ediyoruz.
-pip3 install -r requirements.txt  # requirements.txt dosyasında bulunan gerekli paketler yüklenecek.
+pip3 list | grep flask            #  Check if the required Flask framework is installed.
+pip3 install -r requirements.txt  # Install necessary packages from the requirements.txt file.
 ````
 
 
 ````sh
-sudo nano /etc/systemd/system/myapp.service  # service dosyası oluşturuyoruz.
+sudo nano /etc/systemd/system/myapp.service  #Create the service file.
 ````
 ````sh
 [Unit]
@@ -21,8 +23,8 @@ Description=MyApp Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/task1/app.py
-WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/task1
+ExecStart=/usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd
 Restart=always
 StandardOutput=file:/var/log/myapp.log
 StandardError=file:/var/log/myapp-error.log
@@ -37,24 +39,21 @@ sudo ls -l /var/log | grep myapp.log
 sudo ls -l /var/log | grep myapp-error.log
 sudo chown mecit:mecit /var/log/myapp.log /var/log/myapp-error.log
 
-# Eğer dosyalar yok ise veya izinleri yeterli değilse aşağıdaki gibi dosyaları ekleyip izinleri ayarlayabilirsiniz. 
+# If the files do not exist or if the permissions are not sufficient, you can create the files and set the correct permissions as follows:
 sudo touch /var/log/myapp.log /var/log/myapp-error.log
 sudo chmod 666 /var/log/myapp.log /var/log/myapp-error.log
 ```
-Uygulamamız 8080 portunda çalışacağı için sisteminizdeki portları kontrol edioruz. 
-```sh
-sudo lsof -i :8080  #8080 portunu kullanan uygulamayı verir
-#Benim sistemimde jenkins çalışıyordu onuda aşağıdaki komutla şimdilik durdurdum.
-sudo systemctl stop jenkins
-```
 
-Son olarak yaptığınız değişikliklerden sonra systemd daemon'ını yeniden yükleyip servisi başlatıyoruz.
+Finally, reload the systemd daemon and start the service:
 ````sh
 sudo systemctl daemon-reload
-sudo systemctl restart myapp.service`
-#loglar tutulmuş mu bakmak için:
+sudo systemctl start myapp.service
+sudo systemctl enable myapp.service
+# Check if logs are being recorded:
 cat /var/log/myapp-error.log
+sudo systemctl status myapp.service  # Check the service status:
 ````
+
 
 # Task 2
 
