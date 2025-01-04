@@ -3,11 +3,12 @@ kind: Ingress
 metadata:
   name: my-app-ingress
   namespace: default
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  # annotations:
+  #   nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - http:
+  - host: mecit.com
+    http:
       paths:
       - path: /
         pathType: Prefix
