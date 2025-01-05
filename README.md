@@ -198,7 +198,7 @@ Hello Konzek!
 
 # Task 3
 
-## app.py uygulama dosyamızı, requirements.txt ve Dockerfile dosyasını *k8s* klasörü altında *my-app-version1* ve *my-app-version2* klasörlerine kopyalıyoruz.
+## We copy the app.py application file, requirements.txt, and Dockerfile into the k8s directory under the my-app-version1 and my-app-version2 folders.
 
 ````sh
 cd ..
@@ -212,28 +212,27 @@ cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/requirements.
 cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/Dockerfile .
 ````
 
-my-app-version1 klasöründeki app.py uygulamasında bulunan "Hello everyone!" yazan yeri "Hello from version 1!" ve
-my-app-version2 klasöründeki app.py uygulamasında bulunan "Hello everyone!" yazan yeri "Hello from version 2!" olarak değiştiriyoruz.
+In the app.py application in the my-app-version1 folder, we change the text "Hello everyone!" to "Hello from version 1!" and 
+in the app.py application in the my-app-version2 folder, we change the text "Hello everyone!" to "Hello from version 2!".
 
-## image oluşturup Dockerhub'a push ediyoruz:
+## We are constructing a Docker image and uploading it to the Docker Hub registry.
 
-my-app-version1 klasöründe aşağıdaki ilk komutları çalıştırarak uygulamanın *v1* versionunu, 
-my-app-version2 klasöründe aşağıdaki ikinci komutları çalıştırarak uygulamanın *v2* versionunu dockerhub'a push ediyoruz.
-
+By executing the following commands in the "my-app-version1" directory, we are pushing version v1 of the application to Docker Hub.
 ````sh
 docker build -t mecit35/flask-app:v1 .
 docker login
 docker push mecit35/flask-app:v1
 ````
+By executing the following commands in the "my-app-version2" directory, we are pushing version v2 of the application to Docker Hub.
 ````sh
 docker build -t mecit35/flask-app:v2 .
 docker login
 docker push mecit35/flask-app:v2
 ````
 
-## Kubernetes dosyalarının oluşturulması:
+## Creating Kubernetes manifests:
 
-Kubernetes'e uygulama dağıtımı için gerekli olan *HorizontalPodAutoscaler*, *Deployment*, *Service*, ve *Ingress* gibi manifest dosyalarını aşağıdaki gibi oluşturuyoruz.
+We create the following manifest files: HorizontalPodAutoscaler, Deployment, Service, and Ingress to deploy applications to Kubernetes.
 
 hpa.yaml:
 ````sh
@@ -296,7 +295,6 @@ spec:
 ````
 
 service.yaml:
-
 ````sh
 apiVersion: v1
 kind: Service
@@ -311,9 +309,7 @@ spec:
     targetPort: 8080 
 ````
 
-
 ingress.yaml:
-
 ````sh
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -334,18 +330,25 @@ spec:
               number: 80
 ````
 
-## Helm Chart oluşturulması:
+To enable the Horizontal Pod Autoscaler (HPA) in your Kubernetes cluster, you need to install the metrics-server component. 
+Kubernetes collects CPU and memory usage data from pods using this component.
 
-Bir Chart oluşturmak için:
+````sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+````
+
+## Creating Helm Chart:
+
+For creating a chart:
 
 ````sh
 helm create my-app-chart
-rm -rf my-app-chart/templates/*   #templates klasörü içinde gelen manifest dosyalarını siliyoruz.
+rm -rf my-app-chart/templates/*   #We are removing manifest files from the templates directory.
 ````
 
-Yukarda oluşturduğumuz kubernetes dosyalarını *my-app-chart/templates/* konumuna taşıyoruz. 
+The Kubernetes files created above are being moved to the my-app-chart/templates/ location.
 
-chart'ın içinde gelen *values.yaml* dosyasının içini silip aşağıdaki değişkeni ekliyoruz:
+We are clearing the contents of the values.yaml file within the chart and adding the following variable:
 
 ````sh
 image:
@@ -353,20 +356,20 @@ image:
   tag: v1
 ````
 
-Chart'ın içinde bulunan *Chart.yaml* dosyasındaki *"version"* yazan yere ilk çartımız için *"version: 1.0.0"* ve
-Chart'ın içinde bulunan *Chart.yaml* dosyasındaki *"appVersion"* yazan yere ilk çartımız için *"appVersion: "1.0.0""* yazıyoruz.
+We are updating the 'version' field in the Chart.yaml file to '1.0.0' for our first chart.
+We are assigning 'appVersion: "1.0.0"' to the 'appVersion' field in the Chart.yaml file for our first chart.
 
-Bu değişikliklerden sonra çartımız hazır. şimdi bu Chartı Github repomuza puşlamamız gerekiyor. 
-Bunun niçin:
+After making these changes, our chart is ready. Now we need to push this chart to our GitHub repository.
+For this: 
 
 ````sh
 mkdir helm-chart
-cd helm-chart                       #Chartımızı paketleyeceğimiz klasörü oluşturup oraya geçiyoruz.
-helm package ../my-app-chart/      # bir üst klasörde hazırladığımız "my-app-chart" chart klasörünü paketliyoruz. 
-helm repo index .                   # helm reposu için gerekli index.yaml dosyasını oluşturuyoruz.
+cd helm-chart                       
+helm package ../my-app-chart/       # Package the "my-app-chart" chart located in the parent directory.
+helm repo index .                  # Create an index.yaml file for the Helm repository.
 ````
 
-## Chart'ın github reposuna gönderilmesi:
+## Pushing the chart to the GitHub repository:
 
 ````sh
 git add .
@@ -374,7 +377,7 @@ git commit -m "helm version 1"
 git push
 ````
 
-## Github repomuzdan localimize chartın indirilmesi:
+## Downloading the chart from our GitHub repository to our local machine:
 
 ````sh
 helm repo ls
@@ -382,7 +385,7 @@ helm repo add --username <github-user-name> --password <github-token> <repo-name
 # my-url>>>  'githubhttps://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
 ````
 
-My terminale;
+From the my terminale;
 ````sh
 mecit@Proje:[helm-chart]>(main) helm repo ls
 Error: no repositories to show
@@ -398,13 +401,13 @@ NAME                    CHART VERSION   APP VERSION     DESCRIPTION
 my-repo/my-app-chart    1.0.0           1.0.0           A Helm chart for Kubernetes
 ````
 
-## "v1" versionun kubernetes kümesine dağıtılması:
+## Deploying version "v1" to the Kubernetes cluster:
 
 ````sh
-helm install <release-name> <repo-name>          #Uygulamamızın "v1" versionu dağıtılıyor.
+helm install <release-name> <repo-name>         
 ````
 
-My terminale;
+From the my terminale;
 
 ````sh
 mecit@Proje:[helm-chart]>(main) helm install my-release my-repo/my-app-chart
@@ -442,31 +445,29 @@ mecit@Proje:[helm-chart]>(main) curl mecit.com
 Hello from version 1!mecit@Proje:[helm-chart]>(main) 
 ````
 
-"v1" version başarıyla dağıtıldı. "curl mecit.com" ile sayfamızı gördük.  *"Hello from version 1!"* 
-
-## Uygulamanın "v2" versionlu chart'ının oluşturulup githuba gönderilmesi:
+The deployment was successful "v1". We were able to access the page by running 'curl mecit.com'.  *"Hello from version 1!"* 
 
 
-*values.yaml* dosyasındai "tag" değişkenini "v2" yapıyoruz:
+## Building and uploading the v2 chart to the GitHub repository:
 
+We are changing the 'tag' value to 'v2' in *values.yaml*:
 ````sh
 image:
   repository: mecit35/flask-app
   tag: v2
 ````
 
-Chart'ın içinde bulunan *Chart.yaml* dosyasındaki *"version"* yazan yere ilk çartımız için *"version: 2.0.0"* ve
-Chart'ın içinde bulunan *Chart.yaml* dosyasındaki *"appVersion"* yazan yere ilk çartımız için *"appVersion: "2.0.0""* yazıyoruz.
+For our second chart, we're setting the 'version' and 'appVersion' fields in the Chart.yaml file to '2.0.0'. 
+This indicates that this is the second version of both the chart itself and the application it represents.
 
-Bu değişikliklerden sonra çartımız hazır. şimdi bu Chartı Github repomuza puşlamamız gerekiyor. 
-Bunun niçin:
+Once we've made these changes, our chart is ready for deployment. The next step is to push this updated chart to our GitHub repository.
 
 ````sh
-helm package ../my-app-chart/      # bir üst klasörde hazırladığımız "my-app-chart" chart klasörünü paketliyoruz. 
-helm repo index .                   # helm reposu için gerekli index.yaml dosyasını oluşturuyoruz.
+helm package ../my-app-chart/     
+helm repo index .                   
 ````
 
-## Chart'ın github reposuna gönderilmesi:
+## Pushing the chart to the GitHub repository:
 
 ````sh
 git add .
@@ -474,15 +475,14 @@ git commit -m "helm version 2"
 git push
 ````
 
-## Uygulamanın "v2" versionunun Kubernetes kumesine dağıtılması:
+## Rolling out the v2 version of the application on Kubernetes:
 
 ````sh
 helm list
 helm upgrade my-release my-repo/my-app-chart --version 2.0.0
 ````
 
-My terminale;
-
+From the My terminale;
 ````sh
 mecit@Proje:[helm-chart]>(main) helm list
 NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
@@ -531,23 +531,22 @@ Hello from version 2!mecit@Proje:[helm-chart]>(main)
 mecit@Proje:[helm-chart]>(main) 
 ````
 
-Uygulamanın *"v2"* version başarıyla dağıtıldı. "curl mecit.com" ile sayfamızı gördük.  *"Hello from version 2!"* 
+Deployment of the application's v2 version was successful. We confirmed this by successfully curling mecit.com.  *"Hello from version 2!"* 
 
-Uygulamanın *"v2"* versionu Kubernetes kümesine dağıtılırken *"deployment.yaml"* dosyasındaki *"Rolling Update strategy"* kuralına göre bir önceki uygulama versionu ayakta iken sırası ile podların *"Terminate"*  edilerek yeni versionlu podların oluşturulduğu görülmektedir. 
-
+The deployment of the application's v2 version adhered to the rolling update strategy outlined in the deployment.yaml file. 
+This resulted in a gradual replacement of the old version's pods with new v2 pods, ensuring minimal downtime.
 
     
-## Uygulamanın versionları arasında geçiş yapmak için:
+## Rolling back to a previous version:
 
 ````sh
 helm history  my-release
-helm rollback my-release 1           #1. release geri dönüş yapılır.
+helm rollback my-release 1          
 ````
 
-Bu aşamadan sonra daha önce dağıtılmış releaselerden isdediğimize geçiş yapabiliriz.
+From this point forward, we can switch to any of the previously deployed releases.
 
-Öreneğin aşağıdaki terminal çıktısında son 10 release içinden istediğime geçiş yapıp istediğim uygulama versionunu dağıtabiliyorum:
-
+The terminal output demonstrates that we can switch to any of the last 10 releases and deploy the desired application version.
 ````sh
 mecit@Proje:[helm-chart]>(main) helm history  my-release
 REVISION        UPDATED                         STATUS          CHART                   APP VERSION     DESCRIPTION  
@@ -584,20 +583,15 @@ Hello from version 2!mecit@Proje:[helm-chart]>(main)
 mecit@Proje:[helm-chart]>(main) 
 ````
 
-##  Yoğun Trafik Testi ve HPA’nın Tetiklenmesi
+##  Stress testing and HPA scaling
 
-Kubernetes Cluster'da HPA'nın çalışması için metrics-server bileşenini kurmanız gerekir. Kubernetes, podların CPU ve bellek kullanımını bu bileşen üzerinden toplar.
-````sh
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-````
-
-while true döngüsü ile yük testi yapmak için;
+Performing a load test using a while true loop:
 
 ````sh
 while true; do curl -s http://mecit.com > /dev/null; done
 ````
 
-kaynakları kontrol ettiğimizde;
+When we checked the resources:
 
 ````sh
 mecit@Proje:[Konzek]> kubectl get pod
@@ -630,8 +624,7 @@ my-app-65cbc49475-xp2rs   1/1     Running   0          6m49s
 my-app-65cbc49475-zh7g7   1/1     Running   0          2m11s
 ````
 
-Döngüyü sonlandırdıktan sonra kaynakların durumu:
-
+State of pods after loop termination:
 ````sh
 mecit@Proje:[Konzek]> kubectl get hpa
 NAME         REFERENCE           TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
