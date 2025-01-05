@@ -1,11 +1,11 @@
 version: '3.8'
 services:
   app:
-    build: .
+    image: task2-app:latest
     deploy:
       replicas: 2
       restart_policy:
-        condition: on-failure
+        condition: any
     networks:
       - app_network
 
@@ -22,4 +22,3 @@ services:
 
 networks:
   app_network:
-    driver: bridge

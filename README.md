@@ -57,7 +57,7 @@ sudo systemctl status myapp.service  # Check the service status:
 
 # Task 2
 
-app.py uygulama dosyamızı ve requirements.txt dosyasını *task2* dosyasına kopyalıyoruz.
+We copy the app.py application file and requirements.txt file into the task2 folder.
 
 ````sh
 cd ..
@@ -67,7 +67,7 @@ cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py .
 cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/requirements.txt .
 ````
 
-*Dockerfile* dosyası oluşturuyoruz.
+We create the Dockerfile.
 
 ````sh
 FROM python:3.9-slim
@@ -79,17 +79,17 @@ CMD ["python", "app.py"]
 
 ````
 
-Uygulamayı çalıştıracak *docker-compose.yml* dosyasını oluşturuyoruz.
+We create the docker-compose.yml file to run the application.
 
 ```sh
 version: '3.8'
 services:
   app:
-    build: .
+    image: task2-app:latest
     deploy:
       replicas: 2
       restart_policy:
-        condition: on-failure
+        condition: any
     networks:
       - app_network
 
@@ -106,20 +106,20 @@ services:
 
 networks:
   app_network:
-    driver: bridge
+
 ```
 
 
-Nginx image'ın içine taşımak üzere bir *nginx.conf* dosyası oluşturuyoruz. (compose dosyasında belirttik.)
+We create an nginx.conf file to include in the Nginx image (as specified in the compose file).
 
 ````sh
 events {
-    worker_connections 1024; # Maksimum eş zamanlı bağlantı sayısı
+    worker_connections 1024; 
 }
 
 http {
     upstream app_servers {
-        server app:8080; # Flask uygulaması konteynerini hedef alın
+        server app:8080; # Target the Flask application container
     }
 
     server {
@@ -133,14 +133,68 @@ http {
 
 ````
 
-Uygulamayı çalıştırmak için:
+To deploy the application:
 
 ````sh
-docker-compose up
-#yukarıdaki ayarlamalara göre uygulamamızı tarayıcıya "http://localhost/" yazdığımızda görebiliyor olmamız gerekiyor.
-#uygulama sağlıklı bir şekilde çalışıyor ise sonlandırma işlemi için:
-docker-compose down   
+docker build -t task2-app .                #We run this command while in the docker folder to create the image.
+docker swarm init --advertise-addr 172.19.51.62     #We start Docker Swarm with the specified IP.
+docker stack deploy -c docker-compose.yml konzek-stack    #We deploy the application.
+docker service ls                                         #We can see the services deployed successfully.
+docker ps -a                                             #We can see the running and stopped containers.
+docker rm -f <container id>                              #We can stop a running container and check whether it is recreated or not.
+docker stack rm konzek-stack                          #Stops and removes all services and networks associated with the stack.
+docker swarm leave --force       #Removes the current node from Swarm mode, and no new containers will be created in Swarm mode anymore.
 ````
+From the terminal:
+
+````sh
+mecit@Proje:[docker]>(main) docker stack deploy -c docker-compose.yml konzek-stack
+Since --detach=false was not specified, tasks will be created in the background.
+In a future release, --detach=false will become the default.
+Creating network konzek-stack_app_network
+Creating service konzek-stack_nginx
+Creating service konzek-stack_app
+
+mecit@Proje:[docker]>(main) docker service ls
+ID             NAME                 MODE         REPLICAS   IMAGE              PORTS
+wnb62d04d7w1   konzek-stack_app     replicated   2/2        task2-app:latest
+t2n43nrbsdd3   konzek-stack_nginx   replicated   1/1        nginx:latest       *:80->80/tcp
+
+mecit@Proje:[docker]>(main) docker ps -a
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED          STATUS                      PORTS                                  
+                                                                                                NAMES
+a067d623f638   nginx:latest                          "/docker-entrypoint.…"   7 seconds ago    Up 2 seconds                80/tcp                                 
+                                                                                                konzek-stack_nginx.1.539z91e7361ji7aaimj3o0beb
+33896e5112bc   task2-app:latest                      "python app.py"          14 seconds ago   Up 13 seconds               8080/tcp                               
+                                                                                                konzek-stack_app.2.qn3mzb09cxjgcny5ymrrn09gp
+9f3d1357ecd6   task2-app:latest                      "python app.py"          14 seconds ago   Up 13 seconds               8080/tcp                               
+                                                                                                konzek-stack_app.1.ioc5xszcynqunwrqhzjsadqpj
+666fc78f6466   nginx:latest                          "/docker-entrypoint.…"   18 seconds ago   Exited (1) 8 seconds ago                                           
+                                                                                                konzek-stack_nginx.1.yrev2y4wd6dpecgiezq5vud5p
+
+mecit@Proje:[docker]>(main) curl 172.19.51.62
+Hello Konzek!
+
+mecit@Proje:[docker]>(main) docker rm -f 33896e5112bc 9f3d1357ecd6 
+33896e5112bc
+9f3d1357ecd6
+
+mecit@Proje:[docker]>(main) docker ps -a
+CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS                      PORTS                                   
+                                                                                               NAMES
+1599aacd8f61   task2-app:latest                      "python app.py"          1 second ago    Created                                                             
+                                                                                               konzek-stack_app.2.wafyya9057ow3cwfdjvdbwa16
+572ef56c7d3d   task2-app:latest                      "python app.py"          1 second ago    Created                                                             
+                                                                                               konzek-stack_app.1.eh6tolrpkellvsb3e4pmyoool
+a067d623f638   nginx:latest                          "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes                80/tcp                                  
+                                                                                               konzek-stack_nginx.1.539z91e7361ji7aaimj3o0beb
+666fc78f6466   nginx:latest                          "/docker-entrypoint.…"   2 minutes ago   Exited (1) 2 minutes ago                                            
+                                                                                               konzek-stack_nginx.1.yrev2y4wd6dpecgiezq5vud5p
+mecit@Proje:[docker]>(main) curl 172.19.51.62
+Hello Konzek!
+````
+
+
 
 # Task 3
 
