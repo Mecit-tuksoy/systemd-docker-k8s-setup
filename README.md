@@ -658,7 +658,7 @@ my-app-65cbc49475-r5v5p   1/1     Running   0          11m
 
 # Task 4 (systemd Service Troubleshooting)
 
-Yanlış yapılandırılmış systemd dosyası:
+Incorrectly configured systemd file:
 
 ````sh
 [Unit]
@@ -678,24 +678,26 @@ WantedBy=multi-user.target
 ````
 
 ## Step 1:
-Service dosyasını olması gereken konumda oluşturmadan önce adımları manuel olarak denerim. Bunun için;
-ExecStar'da verilen python3 yolu ve uygulama yolu doğru verilmiş mi kontrol ederim.
+Before creating the service file in its correct location, I manually test the steps. For this:
+
+I check whether the Python3 path and application path specified in ExecStart are correct.
+
 ````sh
 mecit@Proje:[troubleshooting]>(main) which python3
-/usr/bin/python3                                      # Bu yol dosyada "/usr/local/lib/python3" olarak verilmiş.
-````
+/usr/bin/python3                      # The path in the file is given as "/usr/local/lib/python3".
 
 ````sh
 mecit@Proje:[troubleshooting]>(main) ls /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd | grep app.py 
-app.py                                               # Bu yol doğru gözüküyor.
+app.py                                 # This path appears to be correct.
 ````
 
 ## step 2:
-Belirtilen yoldaki app.py uygulamasının olduğu konuma ve içeriğine bakarım eğer uygulamanın çalışması için gereklikler yüklü değilse uygulama geliştiricisi ilede iletişime geçerek gereklilikleri yüklerim.
+
+I check the location and content of the app.py application specified in the path. If the necessary dependencies are not installed, I collaborate with the application developer to install the required packages.
 
 ````sh
 mecit@Proje:[systemd]>(main) cat /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
-from flask import Flask                # Uygulama çalışması için gerekli
+from flask import Flask               # Required for the application to run
 app = Flask(__name__)
 
 @app.route('/')
@@ -706,16 +708,16 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 ````
 
-Uygulamanın olduğu konumda "requirements.txt" dosyasında "Flask" olduğunu görünce sistemimde "Flask" var mı yok mu ona bakarım.
+Seeing that the requirements.txt file in the same directory contains Flask, I check whether Flask is installed on my system.
 
 ````sh
 mecit@Proje:[systemd]>(main) pip list | grep Flask
-Flask               3.1.0                                # Flask yüklü olduğunu gördüm.
+Flask               3.1.0                          # Flask is installed.
 ````
 
 ## Step 3:
 
-Uygulamamı manuel olarak kendi konumunda çalıştırırım
+I run the application manually from its own location to verify it works.
 
 ````sh
 mecit@Proje:[systemd]>(main) /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
@@ -733,43 +735,43 @@ Press CTRL+C to quit
 mecit@Proje:[Konzek]> curl http://127.0.0.1:5000
 Hello everyone! 
 ````
-Başarılı bir şekilde çalıştı.
+The application worked successfully.
 
 ## Step 4:
 
-Bu servici çalıştıracak kullanıcı dosyaya göre "User=ubuntu". Bu kullanıcı var mı ve logların tutulacağı 
-"/var/log/myapp.log" ve "/var/log/myapp-error.log" dosyalarına erişim izni ve yazma, okuma ve çalıştırma gibi izinleri kontrol ederim.
+According to the service file, the user that will run this service is User=ubuntu. I check whether this user exists and verify the read, write, and execute permissions for the log files /var/log/myapp.log and /var/log/myapp-error.log.
 
 ````sh
 mecit@Proje:[Konzek]> whoami
-mecit                                  #Şu anda aktif kullanıcı.
-mecit@Proje:[Konzek]> ls -l /var/log | grep  myapp-error.log
--rw-r--r--  1 root      root                 793 Jan  5 14:09 myapp-error.log  # Dosyanın sahipliği root kullanıcısında
+mecit  # The current active user.
+mecit@Proje:[Konzek]> ls -l /var/log | grep myapp-error.log
+-rw-r--r--  1 root      root       793 Jan  5 14:09 myapp-error.log  # The file ownership belongs to the root user.
 mecit@Proje:[Konzek]> ls -l /var/log | grep myapp.log
--rw-r--r--  1 root      root                  46 Jan  4 19:48 myapp.log      # Dosyanın sahipliği root kullanıcısında
-mecit@Proje:[Konzek]> sudo chown mecit:mecit /var/log/myapp.log /var/log/myapp-error.log # Dosyanın sahipliği mecit yaptık
+-rw-r--r--  1 root      root        46 Jan  4 19:48 myapp.log  # The file ownership belongs to the root user.
+mecit@Proje:[Konzek]> sudo chown mecit:mecit /var/log/myapp.log /var/log/myapp-error.log  # Change ownership to the 'mecit' user.
 mecit@Proje:[Konzek]> ls -l /var/log | grep myapp.log
--rw-r--r--  1 mecit     mecit                 46 Jan  4 19:48 myapp.log   # Dosyanın sahipliği mecit kullanıcısı oldu
-mecit@Proje:[Konzek]> ls -l /var/log | grep  myapp-error.log
--rw-r--r--  1 mecit     mecit                793 Jan  5 14:09 myapp-error.log  # Dosyanın sahipliği mecit kullanıcısı oldu
-# "-rw-r--r--"  bu yetkilerde dosyaya sahibinin okuma yazma yetkilerinin olduğunuda gördüm.
+-rw-r--r--  1 mecit     mecit       46 Jan  4 19:48 myapp.log  # Ownership changed to the 'mecit' user.
+mecit@Proje:[Konzek]> ls -l /var/log | grep myapp-error.log
+-rw-r--r--  1 mecit     mecit      793 Jan  5 14:09 myapp-error.log  # Ownership changed to the 'mecit' user.
 ````
+The -rw-r--r-- permissions indicate that the file owner has read and write permissions.
+
 
 ## Step 5:
-Düzenlediğim service dosyasını "/etc/systemd/system" altında oluştutur ve çalıştırıp durumuna bakarım.
-Son olarak loglar kontrol ederim. 
+
+I create the modified service file under /etc/systemd/system, then start and enable the service. Finally, I check the logs to ensure the service is running as expected.
 
 ````sh
 sudo nano /etc/systemd/system/myapp.service  
 sudo systemctl daemon-reload
 sudo systemctl start myapp.service
 sudo systemctl enable myapp.service
-# Check if logs are being recorded:
+# Checking logs:
 cat /var/log/myapp-error.log
 sudo systemctl status myapp.service  # Check the service status
 ````
 
-
+Logs and Service Status:
 ````sh
 mecit@Proje:[Konzek]> sudo systemctl start myapp.service
 mecit@Proje:[Konzek]> sudo systemctl enable myapp.service
