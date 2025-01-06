@@ -51,7 +51,7 @@ sudo systemctl start myapp.service
 sudo systemctl enable myapp.service
 # Check if logs are being recorded:
 cat /var/log/myapp-error.log
-sudo systemctl status myapp.service  # Check the service status:
+sudo systemctl status myapp.service  # Check the service status
 ````
 
 
@@ -654,3 +654,152 @@ NAME                      READY   STATUS    RESTARTS   AGE
 my-app-65cbc49475-mhqmd   1/1     Running   0          11m
 my-app-65cbc49475-r5v5p   1/1     Running   0          11m
 ````
+
+
+# Task 4 (systemd Service Troubleshooting)
+
+Yanlış yapılandırılmış systemd dosyası:
+
+````sh
+[Unit]
+Description=MyApp Service
+After=network.target
+
+[Service]
+ExecStart=/usr/local/lib/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd
+Restart=always
+StandardOutput=file:/var/log/myapp.log
+StandardError=file:/var/log/myapp-error.log
+User=ubuntu
+
+[Install]
+WantedBy=multi-user.target
+````
+
+## Step 1:
+Service dosyasını olması gereken konumda oluşturmadan önce adımları manuel olarak denerim. Bunun için;
+ExecStar'da verilen python3 yolu ve uygulama yolu doğru verilmiş mi kontrol ederim.
+````sh
+mecit@Proje:[troubleshooting]>(main) which python3
+/usr/bin/python3                                      # Bu yol dosyada "/usr/local/lib/python3" olarak verilmiş.
+````
+
+````sh
+mecit@Proje:[troubleshooting]>(main) ls /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd | grep app.py 
+app.py                                               # Bu yol doğru gözüküyor.
+````
+
+## step 2:
+Belirtilen yoldaki app.py uygulamasının olduğu konuma ve içeriğine bakarım eğer uygulamanın çalışması için gereklikler yüklü değilse uygulama geliştiricisi ilede iletişime geçerek gereklilikleri yüklerim.
+
+````sh
+mecit@Proje:[systemd]>(main) cat /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+from flask import Flask                # Uygulama çalışması için gerekli
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Hello everyone!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+````
+
+Uygulamanın olduğu konumda "requirements.txt" dosyasında "Flask" olduğunu görünce sistemimde "Flask" var mı yok mu ona bakarım.
+
+````sh
+mecit@Proje:[systemd]>(main) pip list | grep Flask
+Flask               3.1.0                                # Flask yüklü olduğunu gördüm.
+````
+
+## Step 3:
+
+Uygulamamı manuel olarak kendi konumunda çalıştırırım
+
+````sh
+mecit@Proje:[systemd]>(main) /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.19.51.62:5000
+Press CTRL+C to quit
+127.0.0.1 - - [05/Jan/2025 17:56:35] "GET / HTTP/1.1" 200 -
+````
+
+````sh
+mecit@Proje:[Konzek]> curl http://127.0.0.1:5000
+Hello everyone! 
+````
+Başarılı bir şekilde çalıştı.
+
+## Step 4:
+
+Bu servici çalıştıracak kullanıcı dosyaya göre "User=ubuntu". Bu kullanıcı var mı ve logların tutulacağı 
+"/var/log/myapp.log" ve "/var/log/myapp-error.log" dosyalarına erişim izni ve yazma, okuma ve çalıştırma gibi izinleri kontrol ederim.
+
+````sh
+mecit@Proje:[Konzek]> whoami
+mecit                                  #Şu anda aktif kullanıcı.
+mecit@Proje:[Konzek]> ls -l /var/log | grep  myapp-error.log
+-rw-r--r--  1 root      root                 793 Jan  5 14:09 myapp-error.log  # Dosyanın sahipliği root kullanıcısında
+mecit@Proje:[Konzek]> ls -l /var/log | grep myapp.log
+-rw-r--r--  1 root      root                  46 Jan  4 19:48 myapp.log      # Dosyanın sahipliği root kullanıcısında
+mecit@Proje:[Konzek]> sudo chown mecit:mecit /var/log/myapp.log /var/log/myapp-error.log # Dosyanın sahipliği mecit yaptık
+mecit@Proje:[Konzek]> ls -l /var/log | grep myapp.log
+-rw-r--r--  1 mecit     mecit                 46 Jan  4 19:48 myapp.log   # Dosyanın sahipliği mecit kullanıcısı oldu
+mecit@Proje:[Konzek]> ls -l /var/log | grep  myapp-error.log
+-rw-r--r--  1 mecit     mecit                793 Jan  5 14:09 myapp-error.log  # Dosyanın sahipliği mecit kullanıcısı oldu
+# "-rw-r--r--"  bu yetkilerde dosyaya sahibinin okuma yazma yetkilerinin olduğunuda gördüm.
+````
+
+## Step 5:
+Düzenlediğim service dosyasını "/etc/systemd/system" altında oluştutur ve çalıştırıp durumuna bakarım.
+Son olarak loglar kontrol ederim. 
+
+````sh
+sudo nano /etc/systemd/system/myapp.service  
+sudo systemctl daemon-reload
+sudo systemctl start myapp.service
+sudo systemctl enable myapp.service
+# Check if logs are being recorded:
+cat /var/log/myapp-error.log
+sudo systemctl status myapp.service  # Check the service status
+````
+
+
+````sh
+mecit@Proje:[Konzek]> sudo systemctl start myapp.service
+mecit@Proje:[Konzek]> sudo systemctl enable myapp.service
+Created symlink /etc/systemd/system/multi-user.target.wants/myapp.service → /etc/systemd/system/myapp.service.
+mecit@Proje:[Konzek]> cat /var/log/myapp-error.log
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.19.51.62:5000
+Press CTRL+C to quit
+127.0.0.1 - - [04/Jan/2025 19:48:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Jan/2025 19:48:33] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [04/Jan/2025 19:48:34] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 12:37:59] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 12:38:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 12:38:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 12:39:02] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 12:39:03] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [05/Jan/2025 14:09:26] "GET / HTTP/1.1" 200 -
+mecit@Proje:[Konzek]> sudo systemctl status myapp.service
+● myapp.service - MyApp Service
+     Loaded: loaded (/etc/systemd/system/myapp.service; enabled; vendor preset: enabled)
+     Active: active (running) since Mon 2025-01-06 11:38:02 +03; 25s ago
+   Main PID: 2027 (python3)
+      Tasks: 1 (limit: 3468)
+     Memory: 24.3M
+     CGroup: /system.slice/myapp.service
+             └─2027 /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+
+Jan 06 11:38:02 SERHAT systemd[1]: Started MyApp Service.
+mecit@Proje:[Konzek]> 
+````
+
