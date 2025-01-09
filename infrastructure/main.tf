@@ -355,3 +355,4 @@ resource "aws_cloudwatch_metric_alarm" "cpu_alarm_low" {
     aws_autoscaling_policy.scale_down
   ]
 }
+
