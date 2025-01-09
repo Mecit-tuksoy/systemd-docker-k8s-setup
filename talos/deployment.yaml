@@ -20,8 +20,18 @@ spec:
       containers:
       - name: my-app
         image: mecit35/flask-app:v1
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - containerPort: 8080
+
         
         resources:
           requests:

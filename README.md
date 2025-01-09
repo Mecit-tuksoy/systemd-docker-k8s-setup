@@ -916,9 +916,20 @@ to get kubeconfig components:
 
 ````sh
 talosctl --talosconfig $TALOSCONFIG kubeconfig .
+
+cat ./kubeconfig              # Verify Kubeconfig file
+
+kubectl --kubeconfig=./kubeconfig get nodes      #Check the node with the kubectl command.
+
+export KUBECONFIG=$(pwd)/kubeconfig     # to set the kubeconfig file in my current directory as the default configuration
 ````
 
 After this stage, we should be able to operate on the cluster using "kubectl" commands.
+
+Talos VM ekran görüntüleri:
+
+![alt text](talos-master-VM.png)
+![alt text](talos-worker-VM.png)
 
 ````sh
 mecit@Proje:[Konzek]> kubectl get nodes
@@ -935,41 +946,34 @@ Kubernetes collects CPU and memory usage data from pods using this component.
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ````
 
-to install an ingress controller:
-
-````sh
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml
-````
-
 We can deploy our application to the cluster by running the manifest files under the "talos" folder.
 
+
+Terminalimden:
+
 ````sh
-cd talos
-kubectl apply -f .
-kubectl get  pod,svc,ingress
+mecit@Proje:[talos]>(main) kubectl get pod
+No resources found in default namespace.
+mecit@Proje:[talos]>(main) kubectl get node
+NAME            STATUS   ROLES           AGE   VERSION
+talos-084-2wg   Ready    control-plane   22h   v1.32.0
+talos-xfo-wra   Ready    <none>          22h   v1.32.0
+mecit@Proje:[talos]>(main) kubectl apply -f .
+deployment.apps/my-app created
+horizontalpodautoscaler.autoscaling/my-app-hpa created
+service/my-app-service created
+mecit@Proje:[talos]>(main) kubectl get pod,deploy,svc
+NAME                          READY   STATUS    RESTARTS   AGE
+pod/my-app-5695c5b5b9-5rh6s   1/1     Running   0          20s
+pod/my-app-5695c5b5b9-fdl2c   1/1     Running   0          20s
+
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/my-app   2/2     2            2           20s
+
+NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes       ClusterIP   10.96.0.1       <none>        443/TCP        22h
+service/my-app-service   NodePort    10.96.134.197   <none>        80:30001/TCP   20s
+mecit@Proje:[talos]>(main) export WORKER_IP=192.168.1.107
+mecit@Proje:[talos]>(main) curl $WORKER_IP:30001
+Hello from version 1!
 ````
-
-
-Here are some of the commands I used during Talos configuration:
-````sh
-talosctl -n 192.168.1.135 health      # Check the health of Talos nodes
-
-nc -zv 192.168.1.135 6443     # Test firewall and port access
-
-talosctl -n 192.168.1.135 service kube-apiserver  # To check if the API server is healthy
-
-talosctl -n 192.168.1.135 service kube-apiserver restart   # To Restart Service
-
-talosctl -n 192.168.1.135 kubeconfig .kubeconfig          # Downloading kubeconfig file to access Talos cluster
-
-cat ./kubeconfig              # Verify Kubeconfig file
-
-kubectl --kubeconfig=./kubeconfig get nodes      #Check the node with the kubectl command.
-
-export KUBECONFIG=$(pwd)/kubeconfig     # to set the kubeconfig file in my current directory as the default configuration
-````
-
-
-mecit@Proje:[Konzek]> curl http://192.168.1.107:30326/
-Hello from version 2!
-
