@@ -13,15 +13,6 @@ System Requirements:
 5- CLI Tools: kubectl, Helm, talosctl
 
 
-
-
-
-
-
-
-
-
-
 # Task 1
 
 The purpose of this task is to run a Python Flask application that prints "Hello everyone!" as a systemd service on Ubuntu. The service should remain active, ensure logs are recorded correctly, and automatically restart in case of potential errors.
@@ -31,8 +22,7 @@ python3 --version           #Check if python3 is installed. If not, install it u
 sudo apt update && sudo apt install python3
 which python3               #Find the path of python3 to use it in the service file.
 pwd                         #Get the current directory path where the application is located, to use it in the service file.
-````
-````sh
+whoami                      # to find out who the user is
 pip3 list | grep flask            #  Check if the required Flask framework is installed.
 pip3 install -r requirements.txt  # Install necessary packages from the requirements.txt file.
 ````
