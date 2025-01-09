@@ -926,7 +926,7 @@ export KUBECONFIG=$(pwd)/kubeconfig     # to set the kubeconfig file in my curre
 
 After this stage, we should be able to operate on the cluster using "kubectl" commands.
 
-Talos VM ekran görüntüleri:
+Talos VM screenshots:
 
 ![alt text](talos-master-VM.png)
 ![alt text](talos-worker-VM.png)
@@ -949,7 +949,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 We can deploy our application to the cluster by running the manifest files under the "talos" folder.
 
 
-Terminalimden:
+From the My terminal:
 
 ````sh
 mecit@Proje:[talos]>(main) kubectl get pod
