@@ -1,3 +1,27 @@
+### In order to complete the tasks outlined in this document, the following system requirements must be met:
+
+System Requirements:
+
+1- Operating System: Ubuntu 22.04.5 LTS or a compatible Linux distribution.
+
+2- Programming Languages: Python 3, pip3
+
+3- Containerization: Docker, Docker Compose
+
+4- Orchestration: Kubernetes (minikube, KIND, EKS, or a managed Kubernetes service)
+
+5- CLI Tools: kubectl, Helm, talosctl
+
+
+
+
+
+
+
+
+
+
+
 # Task 1
 
 The purpose of this task is to run a Python Flask application that prints "Hello everyone!" as a systemd service on Ubuntu. The service should remain active, ensure logs are recorded correctly, and automatically restart in case of potential errors.
@@ -337,7 +361,27 @@ Kubernetes collects CPU and memory usage data from pods using this component.
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ````
 
+ingress controller kurmak için:
+
+````sh
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+kubectl create namespace ingress-namespace
+helm install nginx-ingress ingress-nginx/ingress-nginx -n ingress-namespace
+
+````
+
+
 ## Creating Helm Chart:
+
+
+Helm yüklü değilse yüklemek için :
+
+````sh
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+
+helm version  
+````
 
 For creating a chart:
 
@@ -804,4 +848,106 @@ mecit@Proje:[Konzek]> sudo systemctl status myapp.service
 Jan 06 11:38:02 SERHAT systemd[1]: Started MyApp Service.
 mecit@Proje:[Konzek]> 
 ````
+
+
+# Task 5 Talos:
+
+Talos'un **https://www.talos.dev/v1.9/talos-guides/install/local-platforms/virtualbox/** sayfasındaki dökümanı takip ederek VirtualBox VM'leri ile Talos Kubernetes kümesi oluşturdum:
+
+TalosCTL Kurulumu:
+
+````sh
+curl -Lo /usr/local/bin/talosctl https://github.com/siderolabs/talos/releases/download/v1.4.0/talosctl-linux-amd64
+chmod +x /usr/local/bin/talosctl
+````
+
+iso dosyasını indirmek için:
+
+````sh
+mkdir -p _out/
+
+curl https://factory.talos.dev/image/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba/v1.9.0/metal-amd64.iso -L -o _out/metal-amd64.iso
+````
+
+VirtualBox kullanıcı arayüzündeki “Yeni ” düğmesini tıklayarak yeni bir VM oluşturuyoruz. VM için bir ad verip dosya sistemimizden indirdiğimiz  ISO'yu seçiyoruz ve Tür ve Sürümü belirtiyoruz. VM için en az 2 GB RAM ve en az 2 CPU sağlıyoruz. 
+Oluşturulduktan sonra VM'yi seçip ve “Ayarlar ” >> “Ağ ” >> “Ekli ağ ” >> “Köprülü Adaptör ” olarak değiştiriyoruz.
+
+
+
+
+
+
+export CONTROL_PLANE_IP=192.168.1.135
+
+export WORKER_IP=192.168.1.107
+
+
+
+````sh
+talosctl -n 192.168.1.135 health      # Talos node'larının sağlığını kontrol et
+
+talosctl -n $CONTROL_PLANE_IP get nodes     # Talos node'larını  Ready durumda olup olmadığını kontrol et.
+
+talosctl -n $CONTROL_PLANE_IP bootstrap     # Talos cluster'ını bootstrap yap
+
+nc -zv 192.168.1.135 6443     # Güvenlik duvarını ve port erişimini test et
+
+talosctl -n 192.168.1.135 service kube-apiserver  # API sunucusunun sağlıklı olup olmadığını kontrol etmek için
+
+talosctl -n 192.168.1.135 service kube-apiserver restart   # Servisi Yeniden Başlat için
+
+talosctl -n 192.168.1.135 kubeconfig .kubeconfig          # Talos cluster’ına erişmek için kubeconfig dosyasını indiriyor
+
+cat ./kubeconfig              # Kubeconfig dosyasını doğrula
+
+kubectl --kubeconfig=./kubeconfig get nodes      #kubectl komutu ile node kontrole et.
+
+export KUBECONFIG=$(pwd)/kubeconfig     # bulunduğum dizindeki kubeconfig dosyasını varsayılan yapılandırma olarak ayarlamak için
+
+````
+
+````sh
+mecit@Proje:[Konzek]> kubectl get nodes
+NAME            STATUS   ROLES           AGE     VERSION
+talos-084-2wg   Ready    control-plane   3h11m   v1.32.0
+talos-xfo-wra   Ready    <none>          3h11m   v1.32.0
+````
+
+
+To enable the Horizontal Pod Autoscaler (HPA) in your Kubernetes cluster, you need to install the metrics-server component. 
+Kubernetes collects CPU and memory usage data from pods using this component.
+
+````sh
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+````
+
+ingress controller kurmak için:
+
+````sh
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml
+````
+
+
+Github repomuzdaki chart'ı local repoya ekliyip uygulamayı clustera deploy etmek için:
+
+````sh
+helm repo ls
+helm repo add --username <github-user-name> --password <github-token> <repo-name> '<url the path to the helm-chart folder in the github project as “raw”>'    
+# my-url>>>  'githubhttps://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
+
+helm repo ls
+
+helm search repo my-repo
+
+helm install my-release my-repo/my-app-chart
+
+
+````
+
+
+
+
+
+mecit@Proje:[Konzek]> curl http://192.168.1.107:30326/
+Hello from version 2!
 
