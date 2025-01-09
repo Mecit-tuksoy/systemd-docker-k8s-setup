@@ -223,7 +223,7 @@ Hello Konzek!
 # Task 3
 ##########
 
-## Not: Bu görevi tamamlayabilmek için bir Kubernetes Cluster'a ihtiyacımız var. Bunun için AWS'de EKS Cluster oluşturmak için infrastructure klasörü altındaki "main.tf" dosyasındaki "subnet_ids" kısmına kendi subnet idnizi ve  "ec2_ssh_key" kısmınada kendi key isminizi yazıp çalıştırabilirsiniz.  Çalıştırmak için terraform kurulu olmalı ve AWS'ye gerekli erişim bilgileri sağlanmalı daha sonra ``sh terraform init`` ``sh terraform apply`` komutlarını çalıştırdığınızda cluster oluşmaya başlar. Cluster oluştuktan sonra kubeconfig indirmek için; ```sh aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster`` komutunu girmeliyiz.
+## Note: We need a Kubernetes Cluster to complete this task. To create an EKS Cluster in AWS, you can type your own subnet id in the "subnet_ids" section and your own key name in the "ec2_ssh_key" section in the "main.tf" file under the infrastructure folder and run it.  To run it, terraform must be installed and the necessary access information must be provided to AWS, then run ``sh terraform init`` ``sh terraform apply`` and the cluster starts to form. To download kubeconfig after the cluster is formed; we must enter the command ```sh aws eks update-kubeconfig --region us-east-1 --name my-eks-cluster``.
 
 ## We copy the app.py application file, requirements.txt, and Dockerfile into the k8s directory under the my-app-version1 and my-app-version2 folders.
 
