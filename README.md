@@ -74,6 +74,7 @@ sudo systemctl status myapp.service  # Check the service status
 To install docker and docker compose we can run the docker.sh file in the scripts folder.
 
 ````sh
+./scripts/instal_docker.sh
 docker version
 docker compose version
 ````
@@ -357,7 +358,7 @@ Kubernetes collects CPU and memory usage data from pods using this component.
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ````
 
-ingress controller kurmak için:
+to install an ingress controller:
 
 ````sh
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -371,7 +372,7 @@ helm install nginx-ingress ingress-nginx/ingress-nginx -n ingress-namespace
 ## Creating Helm Chart:
 
 
-Helm yüklü değilse yüklemek için :
+To install Helm if it is not installed:
 
 ````sh
 curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -431,7 +432,7 @@ mecit@Proje:[helm-chart]>(main) helm repo ls
 Error: no repositories to show
 mecit@Proje:[helm-chart]>(main) helm list
 NAME    NAMESPACE       REVISION        UPDATED STATUS  CHART   APP VERSION
-mecit@Proje:[helm-chart]>(main) helm repo add --username <github-user-name> --password <github-token> my-repo 'https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
+mecit@Proje:[helm-chart]>(main) helm repo add --username ********** --password  ********* my-repo 'https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
 "my-repo" has been added to your repositories
 mecit@Proje:[helm-chart]>(main) helm repo ls
 NAME    URL
