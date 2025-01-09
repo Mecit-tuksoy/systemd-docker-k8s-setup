@@ -1,5 +1,6 @@
-##################################################################################
-### In order to complete the tasks outlined in this document, the following system requirements must be met:
+###################################################################################
+### In order to complete the tasks outlined in this document, the following system #
+### requirements must be met:                                                      #
 ###################################################################################
 System Requirements:
 
