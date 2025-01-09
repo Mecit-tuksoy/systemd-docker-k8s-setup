@@ -13,9 +13,9 @@ System Requirements:
 
 5- CLI Tools: kubectl, Helm, talosctl
 
-# ##########
-**Task 1**
-# ##########
+##########
+# Task 1
+##########
 
 The purpose of this task is to run a Python Flask application that prints "Hello everyone!" as a systemd service on Ubuntu. The service should remain active, ensure logs are recorded correctly, and automatically restart in case of potential errors.
 
@@ -70,9 +70,9 @@ cat /var/log/myapp-error.log
 sudo systemctl status myapp.service  # Check the service status
 ````
 
-
+##########
 # Task 2
-
+##########
 To install docker and docker compose we can run the docker.sh file in the scripts folder.
 
 ````sh
@@ -218,9 +218,9 @@ Hello Konzek!
 ````
 
 
-
+##########
 # Task 3
-
+##########
 ## We copy the app.py application file, requirements.txt, and Dockerfile into the k8s directory under the my-app-version1 and my-app-version2 folders.
 
 ````sh
@@ -698,9 +698,9 @@ my-app-65cbc49475-mhqmd   1/1     Running   0          11m
 my-app-65cbc49475-r5v5p   1/1     Running   0          11m
 ````
 
-
+##########
 # Task 4 (systemd Service Troubleshooting)
-
+##########
 Incorrectly configured systemd file:
 
 ````sh
@@ -848,9 +848,9 @@ Jan 06 11:38:02 SERHAT systemd[1]: Started MyApp Service.
 mecit@Proje:[Konzek]> 
 ````
 
-
+##########
 # Task 5 Talos:
-
+##########
 I created a Talos Kubernetes cluster with VirtualBox VMs by following the documentation on Talos' **https://www.talos.dev/v1.9/talos-guides/install/local-platforms/virtualbox/** page:
 
 TalosCTL Setup:
