@@ -868,15 +868,15 @@ curl https://factory.talos.dev/image/376567988ad370138ad8b2698212367b8edcb69b5fd
 
 We create a new VM by clicking the "New" button in the VirtualBox user interface. We give the VM a name, select the ISO downloaded from our file system and specify the Type and Version. We provide at least 2 GB of RAM and at least 2 CPUs for the VM. Once created, we select the VM and change it to "Settings " >> "Network " >> "Attached network " >> "Bridged Adapter ".
 
-Bu işlemi ikinci bir VM'i işçi düğümü olarak kullanmak için tekrarlıyoruz.
+We repeat this process to use a second VM as a worker node.
 
-Kontrol düzlemi düğümünü başlatıyoruz ve makine bakım moduna girdiğinde, düğümün aldığı IP adresini ayrıntılı olarak gösteren bir konsol günlüğü olacak bu Ip adresini CONTROL_PLANE_IP değişkenine atıyoruz.
+We initialize the control plane node and when the machine enters maintenance mode, there will be a console log detailing the IP address that the node received, we assign this Ip address to the CONTROL_PLANE_IP variable.
 
 ````sh
 export CONTROL_PLANE_IP=192.168.1.135
 ````
 
-Makine yapılandırmalarına başlayabiliriz.  sırası ile aşağıdaki komutları giriyoruz. 
+We can start the machine configurations. We enter the following commands in order.
 
 ````sh
 talosctl gen config talos-vbox-cluster https://$CONTROL_PLANE_IP:6443 --output-dir _out       #This will create several files in the _out directory: controlplane.yaml, worker.yaml, and talosconfig
@@ -890,13 +890,13 @@ Create at least a single worker node using a process similar to the control plan
 export WORKER_IP=192.168.1.107
 ````
 
-worker makineyi yapılandırmak için:
+worker to configure the machine:
 
 ````sh
 talosctl apply-config --insecure --nodes $WORKER_IP --file _out/worker.yaml
 ````
 
-talosconfig yapılandırması için:
+for talosconfig configuration:
 ````sh
 export TALOSCONFIG="_out/talosconfig"
 
@@ -912,13 +912,13 @@ talosctl --talosconfig $TALOSCONFIG bootstrap
 
 ````
 
-kubeconfig bileşenlerini almak için:
+to get kubeconfig components:
 
 ````sh
 talosctl --talosconfig $TALOSCONFIG kubeconfig .
 ````
 
-Bu aşamadan sonra "kubectl" komutlarını kullanarak clusterda işlem yapabiliyor olmalıyız.
+After this stage, we should be able to operate on the cluster using "kubectl" commands.
 
 ````sh
 mecit@Proje:[Konzek]> kubectl get nodes
@@ -935,13 +935,13 @@ Kubernetes collects CPU and memory usage data from pods using this component.
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
 ````
 
-ingress controller kurmak için:
+to install an ingress controller:
 
 ````sh
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/baremetal/deploy.yaml
 ````
 
-"talos" klasörünün altındaki manifest dosyalarını çalıştırarak uygulamamızı clustera deploy edebiliriz.
+We can deploy our application to the cluster by running the manifest files under the "talos" folder.
 
 ````sh
 cd talos
@@ -950,30 +950,23 @@ kubectl get  pod,svc,ingress
 ````
 
 
-Talos yapılandırması sırasında kullandığım komutların bazıları:
-
-
+Here are some of the commands I used during Talos configuration:
 ````sh
-talosctl -n 192.168.1.135 health      # Talos node'larının sağlığını kontrol et
+talosctl -n 192.168.1.135 health      # Check the health of Talos nodes
 
-talosctl -n 192.168.1.135 get nodes     # Talos node'larını  Ready durumda olup olmadığını kontrol et.
+nc -zv 192.168.1.135 6443     # Test firewall and port access
 
-talosctl -n 192.168.1.135 bootstrap     # Talos cluster'ını bootstrap yap
+talosctl -n 192.168.1.135 service kube-apiserver  # To check if the API server is healthy
 
-nc -zv 192.168.1.135 6443     # Güvenlik duvarını ve port erişimini test et
+talosctl -n 192.168.1.135 service kube-apiserver restart   # To Restart Service
 
-talosctl -n 192.168.1.135 service kube-apiserver  # API sunucusunun sağlıklı olup olmadığını kontrol etmek için
+talosctl -n 192.168.1.135 kubeconfig .kubeconfig          # Downloading kubeconfig file to access Talos cluster
 
-talosctl -n 192.168.1.135 service kube-apiserver restart   # Servisi Yeniden Başlat için
+cat ./kubeconfig              # Verify Kubeconfig file
 
-talosctl -n 192.168.1.135 kubeconfig .kubeconfig          # Talos cluster’ına erişmek için kubeconfig dosyasını indiriyor
+kubectl --kubeconfig=./kubeconfig get nodes      #Check the node with the kubectl command.
 
-cat ./kubeconfig              # Kubeconfig dosyasını doğrula
-
-kubectl --kubeconfig=./kubeconfig get nodes      #kubectl komutu ile node kontrole et.
-
-export KUBECONFIG=$(pwd)/kubeconfig     # bulunduğum dizindeki kubeconfig dosyasını varsayılan yapılandırma olarak ayarlamak için
-
+export KUBECONFIG=$(pwd)/kubeconfig     # to set the kubeconfig file in my current directory as the default configuration
 ````
 
 
