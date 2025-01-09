@@ -39,8 +39,8 @@ Description=MyApp Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
-WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd
+ExecStart=/usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py
+WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd
 Restart=always
 StandardOutput=file:/var/log/myapp.log
 StandardError=file:/var/log/myapp-error.log
@@ -87,8 +87,8 @@ We copy the app.py application file and requirements.txt file into the task2 fol
 cd ..
 mkdir docker
 cd docker
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py .
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/requirements.txt .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/requirements.txt .
 ````
 
 We create the Dockerfile.
@@ -230,13 +230,13 @@ Hello Konzek!
 ````sh
 cd ..
 cd k8s/my-app-version1
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/app.py .
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/requirements.txt .
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/Dockerfile .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/app.py .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/requirements.txt .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/Dockerfile .
 cd k8s/my-app-version2
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/app.py .
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/requirements.txt .
-cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/docker/Dockerfile .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/app.py .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/requirements.txt .
+cp /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/docker/Dockerfile .
 ````
 
 In the app.py application in the my-app-version1 folder, we change the text "Hello everyone!" to "Hello from version 1!" and 
@@ -429,7 +429,7 @@ git push
 ````sh
 helm repo ls
 helm repo add --username <github-user-name> --password <github-token> <repo-name> '<url the path to the helm-chart folder in the github project as “raw”>'    
-# my-url>>>  'githubhttps://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
+# my-url>>>  'githubhttps://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-talos-setup/refs/heads/main/k8s/helm-chart'
 ````
 
 From the my terminale;
@@ -438,11 +438,11 @@ mecit@Proje:[helm-chart]>(main) helm repo ls
 Error: no repositories to show
 mecit@Proje:[helm-chart]>(main) helm list
 NAME    NAMESPACE       REVISION        UPDATED STATUS  CHART   APP VERSION
-mecit@Proje:[helm-chart]>(main) helm repo add --username ********** --password  ********* my-repo 'https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart'
+mecit@Proje:[helm-chart]>(main) helm repo add --username ********** --password  ********* my-repo 'https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-talos-setup/refs/heads/main/k8s/helm-chart'
 "my-repo" has been added to your repositories
 mecit@Proje:[helm-chart]>(main) helm repo ls
 NAME    URL
-my-repo https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-setup/refs/heads/main/k8s/helm-chart
+my-repo https://raw.githubusercontent.com/Mecit-tuksoy/systemd-docker-k8s-talos-setup/refs/heads/main/k8s/helm-chart
 mecit@Proje:[helm-chart]>(main) helm search repo my-repo
 NAME                    CHART VERSION   APP VERSION     DESCRIPTION
 my-repo/my-app-chart    1.0.0           1.0.0           A Helm chart for Kubernetes
@@ -714,8 +714,8 @@ Description=MyApp Service
 After=network.target
 
 [Service]
-ExecStart=/usr/local/lib/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
-WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd
+ExecStart=/usr/local/lib/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py
+WorkingDirectory=/mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd
 Restart=always
 StandardOutput=file:/var/log/myapp.log
 StandardError=file:/var/log/myapp-error.log
@@ -735,7 +735,7 @@ mecit@Proje:[troubleshooting]>(main) which python3
 /usr/bin/python3                      # The path in the file is given as "/usr/local/lib/python3".
 
 ````sh
-mecit@Proje:[troubleshooting]>(main) ls /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd | grep app.py 
+mecit@Proje:[troubleshooting]>(main) ls /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd | grep app.py 
 app.py                                 # This path appears to be correct.
 ````
 
@@ -744,7 +744,7 @@ app.py                                 # This path appears to be correct.
 I check the location and content of the app.py application specified in the path. If the necessary dependencies are not installed, I collaborate with the application developer to install the required packages.
 
 ````sh
-mecit@Proje:[systemd]>(main) cat /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+mecit@Proje:[systemd]>(main) cat /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py
 from flask import Flask               # Required for the application to run
 app = Flask(__name__)
 
@@ -768,7 +768,7 @@ Flask               3.1.0                          # Flask is installed.
 I run the application manually from its own location to verify it works.
 
 ````sh
-mecit@Proje:[systemd]>(main) /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+mecit@Proje:[systemd]>(main) /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py
  * Serving Flask app 'app'
  * Debug mode: off
 WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
@@ -847,7 +847,7 @@ mecit@Proje:[Konzek]> sudo systemctl status myapp.service
       Tasks: 1 (limit: 3468)
      Memory: 24.3M
      CGroup: /system.slice/myapp.service
-             └─2027 /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-setup/systemd/app.py
+             └─2027 /usr/bin/python3 /mnt/c/Users/MCT/Desktop/Konzek/systemd-docker-k8s-talos-setup/systemd/app.py
 
 Jan 06 11:38:02 SERHAT systemd[1]: Started MyApp Service.
 mecit@Proje:[Konzek]> 
