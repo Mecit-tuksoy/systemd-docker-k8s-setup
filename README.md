@@ -1,5 +1,6 @@
+##################################################################################
 ### In order to complete the tasks outlined in this document, the following system requirements must be met:
-
+###################################################################################
 System Requirements:
 
 1- Operating System: Ubuntu 22.04.5 LTS or a compatible Linux distribution.
