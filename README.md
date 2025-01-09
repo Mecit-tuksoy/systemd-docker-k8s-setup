@@ -71,8 +71,14 @@ sudo systemctl status myapp.service  # Check the service status
 
 # Task 2
 
-We copy the app.py application file and requirements.txt file into the task2 folder.
+To install docker and docker compose we can run the docker.sh file in the scripts folder.
 
+````sh
+docker version
+docker compose version
+````
+
+We copy the app.py application file and requirements.txt file into the task2 folder.
 ````sh
 cd ..
 mkdir docker
